@@ -2,6 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.db.database import get_db
+from pydantic import UUID4
+from app.db.models import OutscraperLocation
+from app.schemas.models import Location
 
 
 router = APIRouter()
@@ -23,3 +26,12 @@ def check_database_connection(db: Session = Depends(get_db)):
         return {"status": "error", "message": "Unknown database error"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    
+
+@router.get("/locations/{location_id}", response_model=Location)
+def get_location(location_id: UUID4, db: Session = Depends(get_db)):
+    db_location = db.query(OutscraperLocation).filter(OutscraperLocation.Id == location_id).first()
+    if not db_location:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    return db_location
