@@ -2,8 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 from app.db.database import get_db
-from app.api.routes.location_router import router as location_router
-
+from app.api.routes.locations.location_router import router as location_router
 
 
 router = APIRouter()

@@ -33,13 +33,6 @@ def get_locations(
 
     return query.offset(skip).limit(limit).all()
 
-
-def get_location_with_metrics(db: Session, location_id: UUID) -> Optional[OutscraperLocation]:
-    return db.query(OutscraperLocation)\
-        .filter(OutscraperLocationMetric.LocationId == location_id)\
-        .first()
-
-
 def get_location_metrics(db:Session, location_id: UUID, skip: int = 0, limit: int = 100) -> List[OutscraperLocationMetric]:
     return db.query(OutscraperLocationMetric)\
         .filter(OutscraperLocationMetric.LocationId == location_id)\
@@ -67,10 +60,10 @@ def get_metrics_by_year_month(db: Session, year: int, month: Optional[int] = Non
     """
 
     query = db.query(OutscraperLocationMetric)\
-        .filter(OutscraperLocationMetric.CreateDate.year == year)
+        .filter(OutscraperLocationMetric.Year == year)
 
     if month:
-        query = query.filter(OutscraperLocationMetric.CreateDate.month == month)
+        query = query.filter(OutscraperLocationMetric.Month == month)
 
     return query.order_by(OutscraperLocationMetric.CreateDate.desc())\
         .offset(skip)\
