@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from uuid import UUID
 from typing import List, Optional
 from app.db.models import OutscraperLocation, OutscraperLocationMetric
@@ -69,3 +70,24 @@ def get_metrics_by_year_month(db: Session, year: int, month: Optional[int] = Non
         .offset(skip)\
         .limit(limit)\
         .all()
+
+
+# Stats
+def get_location_counts(db: Session) -> dict:
+    result = db.query(
+        func.count(OutscraperLocation.Id).label("total"),
+        func.sum(case(
+            (OutscraperLocation.Verified == True, 1),
+            else_=0
+        )).label("verified_count"),
+        func.sum(case(
+            ((OutscraperLocation.Verified == False) | (OutscraperLocation.Verified == None), 1),
+            else_ = 0
+        )).label("unverified_count")
+    ).first()
+
+    return {
+        "total": result.total or 0,
+        "verified_count": result.verified_count or 0,
+        "unverified_count": result.unverified_count or 0
+    }

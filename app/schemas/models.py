@@ -53,6 +53,12 @@ class LocationWithMetrics(Location):
     metrics: List[LocationMetric] = []
 
 
+class LocationCounts(BaseModel):
+    total: int
+    verified_count: int
+    unverified_count: int
+
+
 
 
 

@@ -4,9 +4,10 @@ from uuid import UUID
 from typing import List, Optional
 
 from app.db.database import get_db
-from app.schemas.models import Location, LocationMetric, LocationWithMetrics
+from app.schemas.models import Location, LocationMetric, LocationWithMetrics, LocationCounts
 from app.services.location.location_service import ( 
-    get_location, get_locations, get_location_metrics, get_metrics_by_rating, get_metrics_by_year_month 
+    get_location, get_locations, get_location_metrics, get_metrics_by_rating, get_metrics_by_year_month,
+    get_location_counts 
     )
 
 router = APIRouter()
@@ -38,6 +39,12 @@ def read_metrics_by_year_month(
 
     metrics = get_metrics_by_year_month(db, year=year, month=month)
     return metrics
+
+@router.get("/locations/counts", response_model=LocationCounts)
+def read_location_counts(
+    db: Session = Depends(get_db)
+):
+    return get_location_counts(db)
 
 # Dynamic Path second
 @router.get("/locations/{location_id}", response_model=Location)
