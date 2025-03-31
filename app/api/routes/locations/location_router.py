@@ -7,7 +7,7 @@ from app.db.database import get_db
 from app.schemas.models import Location, LocationMetric, LocationWithMetrics, LocationCounts
 from app.services.location.location_service import ( 
     get_location, get_locations, get_location_metrics, get_metrics_by_rating, get_metrics_by_year_month,
-    get_location_counts 
+    get_location_counts, get_location_with_metrics, get_locations_with_metrics 
     )
 
 router = APIRouter()
@@ -46,18 +46,6 @@ def read_location_counts(
 ):
     return get_location_counts(db)
 
-# Dynamic Path second
-@router.get("/locations/{location_id}", response_model=Location)
-def read_location(
-    location_id: UUID,
-    db: Session = Depends(get_db)
-):
-    location = get_location(db, location_id=location_id)
-    if location is None:
-        raise HTTPException(status_code=404, detail="Location not found")
-    return location
-
-
 @router.get("/locations/", response_model=List[Location])
 def read_locations(
     skip: int = 0, 
@@ -70,8 +58,40 @@ def read_locations(
     locations = get_locations(db, skip=skip, limit=limit, name=name, country=country, state=state)
     return locations
 
+@router.get("/locations/with-metrics", response_model=List[LocationWithMetrics])
+def read_locations_with_metrics(
+    skip: int = 0, 
+    limit: int = 100,
+    name: Optional[str] = None,
+    country: Optional[str] = None,
+    state: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    locations = get_locations_with_metrics(db, skip=skip, limit=limit, name=name, country=country, state=state)
+    return locations
+
+
+# Dynamic Path second
+@router.get("/locations/{location_id}", response_model=Location)
+def read_location(
+    location_id: UUID,
+    db: Session = Depends(get_db)
+):
+    location = get_location(db, location_id=location_id)
+    if location is None:
+        raise HTTPException(status_code=404, detail="Location not found")
+    return location
+
 @router.get("/locations/{location_id}/metrics", response_model=List[LocationMetric])
 def read_location_metrics(location_id: UUID, skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     metrics = get_location_metrics(db, location_id=location_id, skip=skip, limit=limit)
     return metrics
+
+@router.get("/locations/{location_id}/with-metrics", response_model=LocationWithMetrics)
+def read_location_with_metrics(location_id: UUID, db: Session = Depends(get_db)):
+    location = get_location_with_metrics(db, location_id=location_id)
+    if location is None:
+        raise HTTPException(status_code=404, detail="Location not found")
+    
+    return location
 

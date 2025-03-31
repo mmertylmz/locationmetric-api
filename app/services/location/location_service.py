@@ -42,6 +42,53 @@ def get_location_metrics(db:Session, location_id: UUID, skip: int = 0, limit: in
         .limit(limit)\
         .all()
 
+def get_location_with_metrics(db: Session, location_id: UUID) -> Optional[OutscraperLocation]:
+    location = db.query(OutscraperLocation).filter(OutscraperLocation.Id == location_id).first()
+
+    if location:
+        metrics = db.query(OutscraperLocationMetric)\
+                    .filter(OutscraperLocationMetric.LocationId == location_id)\
+                    .order_by(OutscraperLocationMetric.CreateDate.desc())\
+                    .all()
+        location.metrics = metrics
+
+    return location
+
+def get_locations_with_metrics(
+        db:Session,
+        skip: int = 0,
+        limit: int = 100,
+        name: Optional[str] = None,
+        country: Optional[str] = None,
+        state: Optional[str] = None,
+        type: Optional[str] = None,
+        ) -> List[OutscraperLocation]:
+    query = db.query(OutscraperLocation)
+
+    if name:
+        query = query.filter(OutscraperLocation.Name.like(f"%{name}%"))
+
+    if country:
+        query = query.filter(OutscraperLocation.Country == country)
+    
+    if state:
+        query = query.filter(OutscraperLocation.State == state)
+
+    if type:
+        query = query.filter(OutscraperLocation.Type == type)
+
+    locations = query.order_by(OutscraperLocation.Name).offset(skip).limit(limit).all()
+
+    for location in locations:
+        metrics = db.query(OutscraperLocationMetric)\
+                    .filter(OutscraperLocationMetric.LocationId == location.Id)\
+                    .order_by(OutscraperLocationMetric.CreateDate.desc())\
+                    .all()
+        location.metrics = metrics
+    
+    return locations
+
+
 def get_metrics_by_rating(db: Session, min_rating: float = 0, max_rating: float = 5, skip: int = 0, limit: int = 100) -> List[OutscraperLocationMetric]:
     """
     get metrics by rating range
